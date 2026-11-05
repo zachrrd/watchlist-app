@@ -3,6 +3,7 @@ export interface Series {
   title: string;
   type: string;
   poster?: string;
+  backdrop?: string;
   genre?: string;
   year?: number | string;
   duration?: number | string;
@@ -21,3 +22,16 @@ export interface Episode {
   notes?: string;
   watched: boolean;
 }
+
+export type SortOption =
+  | 'default'
+  | 'title-asc'
+  | 'title-desc'
+  | 'year-desc'
+  | 'year-asc';
+
+export type StatusFilterOption =
+  | 'all'
+  | 'Watching'
+  | 'Plan to Watch'
+  | 'Completed';

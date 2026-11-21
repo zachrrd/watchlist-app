@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Film, Search, Plus, Menu, X, Clapperboard, Tv, Popcorn, Bookmark } from 'lucide-react';
+import { Film, Search, Plus, Menu, X, Clapperboard, Tv, Popcorn, Bookmark, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -12,6 +12,7 @@ interface NavbarProps {
   onSearchChange: (query: string) => void;
   onAddClick: () => void;
   watchlistCount?: number;
+  onSignOut?: () => void;
 }
 
 export default function Navbar({
@@ -21,6 +22,7 @@ export default function Navbar({
   onSearchChange,
   onAddClick,
   watchlistCount = 0,
+  onSignOut,
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -144,6 +146,21 @@ export default function Navbar({
             <span className="hidden xs:inline sm:inline">Add Title</span>
           </Button>
 
+          {/* Desktop Sign Out Button */}
+          {onSignOut && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onSignOut}
+              className="hidden sm:inline-flex h-9 gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-medium"
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden lg:inline">Sign Out</span>
+            </Button>
+          )}
+
           {/* Mobile Hamburger Menu Toggle */}
           <Button
             type="button"
@@ -213,6 +230,20 @@ export default function Navbar({
                 </button>
               );
             })}
+
+            {onSignOut && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onSignOut();
+                }}
+                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400 hover:bg-slate-900 hover:text-red-300 transition-colors pt-3 border-t border-slate-800/80 mt-1"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </button>
+            )}
           </nav>
         </div>
       )}

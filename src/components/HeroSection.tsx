@@ -6,7 +6,7 @@ import { Info, Play } from 'lucide-react';
 export interface HeroSectionProps {
   series: Series | null;
   episodeList: Episode[];
-  onViewDetail: (id: number) => void;
+  onViewDetail: (id: string) => void;
   className?: string;
 }
 
@@ -16,7 +16,7 @@ export default function HeroSection({
   onViewDetail,
   className = '',
 }: HeroSectionProps) {
-  const [backdropError, setBackdropError] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
   if (!series) return null;
 
@@ -40,7 +40,14 @@ export default function HeroSection({
   const watchPlatform = watchTargetEpisode?.platform;
 
   // Backdrop image strategy: prefer explicit backdrop, fallback to poster
-  const imageSource = series.backdrop || series.poster;
+  const imageSource =
+    series.backdrop?.trim() ||
+    series.backdrop_url?.trim() ||
+    series.poster?.trim() ||
+    series.poster_url?.trim() ||
+    null;
+
+  const isBackdropValid = Boolean(imageSource && failedUrl !== imageSource);
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
@@ -77,11 +84,12 @@ export default function HeroSection({
     >
       {/* Background Media Container */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        {imageSource && !backdropError ? (
+        {imageSource && isBackdropValid ? (
           <img
+            key={imageSource}
             src={imageSource}
             alt={series.title}
-            onError={() => setBackdropError(true)}
+            onError={() => setFailedUrl(imageSource)}
             className="h-full w-full object-cover object-center scale-105 transition-transform duration-1000 ease-out"
           />
         ) : (

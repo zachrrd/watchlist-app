@@ -15,9 +15,9 @@ import { isValidHttpUrl, detectPlatform } from "@/lib/utils";
 interface EpisodeItemProps {
   ep: Episode;
   seriesPoster?: string;
-  onToggleWatched: (id: number) => void;
+  onToggleWatched: (id: string) => void;
   onEdit: (ep: Episode) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function EpisodeItem({

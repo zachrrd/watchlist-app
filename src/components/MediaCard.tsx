@@ -7,9 +7,9 @@ export interface MediaCardProps {
   show: Series;
   progress?: number;
   episodeCount?: number;
-  onClick: (id: number) => void;
-  onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
+  onClick: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
   className?: string;
 }
 
@@ -22,9 +22,18 @@ export default function MediaCard({
   onDelete,
   className = '',
 }: MediaCardProps) {
-  const [imgError, setImgError] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const posterSrc =
+    show.poster?.trim() ||
+    show.poster_url?.trim() ||
+    show.backdrop?.trim() ||
+    show.backdrop_url?.trim() ||
+    null;
+
+  const isImageValid = Boolean(posterSrc && failedUrl !== posterSrc);
 
   // Close popup menu when clicking outside
   useEffect(() => {
@@ -77,11 +86,12 @@ export default function MediaCard({
     >
       {/* 2:3 Poster Container */}
       <AspectRatio ratio={2 / 3} className="relative w-full overflow-hidden bg-slate-950">
-        {show.poster && !imgError ? (
+        {posterSrc && isImageValid ? (
           <img
-            src={show.poster}
+            key={posterSrc}
+            src={posterSrc}
             alt={show.title}
-            onError={() => setImgError(true)}
+            onError={() => setFailedUrl(posterSrc)}
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
           />

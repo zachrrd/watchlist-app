@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import type { Series, Episode } from '../types';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -7,9 +7,16 @@ import { isValidHttpUrl, detectPlatform } from "@/lib/utils";
 
 import EpisodeItem from './EpisodeItem';
 import EpisodeForm from './EpisodeForm';
+import {
+  createEpisode,
+  updateEpisode,
+  deleteEpisode,
+  deleteShow,
+  deleteImageFromImageKit,
+} from '../services';
 
 interface ShowDetailProps {
-  seriesId: number;
+  seriesId: string;
   seriesList: Series[];
   setSeriesList: (list: Series[]) => void;
   episodeList: Episode[];
@@ -29,9 +36,10 @@ export default function ShowDetail({
 }: ShowDetailProps) {
   const [showEpisodeForm, setShowEpisodeForm] = useState(false);
   const [editingEp, setEditingEp] = useState<Episode | null>(null);
-  const [backdropFailed, setBackdropFailed] = useState(false);
-  const [posterFailed, setPosterFailed] = useState(false);
+  const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
   const [selectedSeason, setSelectedSeason] = useState<number | 'all'>('all');
+  const [isSavingEpisode, setIsSavingEpisode] = useState(false);
+  const [episodeError, setEpisodeError] = useState<string | null>(null);
 
   const show = seriesList.find((s) => s.id === seriesId);
   const myEpisodes = useMemo(
@@ -85,20 +93,21 @@ export default function ShowDetail({
     );
   }
 
+  const backdropCandidate = (show.backdrop?.trim() || show.backdrop_url?.trim()) || null;
+  const posterCandidate = (show.poster?.trim() || show.poster_url?.trim()) || null;
+
   // --- IMAGE FALLBACK HIERARCHY ---
   // 1. show.backdrop -> 2. show.poster -> 3. dark gradient
   const activeBackdrop =
-    !backdropFailed && show.backdrop
-      ? show.backdrop
-      : !posterFailed && show.poster
-      ? show.poster
+    backdropCandidate && !failedUrls[backdropCandidate]
+      ? backdropCandidate
+      : posterCandidate && !failedUrls[posterCandidate]
+      ? posterCandidate
       : null;
 
   const handleImageError = () => {
-    if (!backdropFailed && show.backdrop) {
-      setBackdropFailed(true);
-    } else {
-      setPosterFailed(true);
+    if (activeBackdrop) {
+      setFailedUrls((prev) => ({ ...prev, [activeBackdrop]: true }));
     }
   };
 
@@ -149,85 +158,164 @@ export default function ShowDetail({
   };
 
   // --- EPISODE & SERIES HANDLERS ---
-  const toggleWatched = (episodeId: number) => {
+  const toggleWatched = async (episodeId: string) => {
+    const target = episodeList.find((ep) => ep.id === episodeId);
+    if (!target) return;
+    const nextWatched = !target.watched;
+
     setEpisodeList(
       episodeList.map((ep) =>
-        ep.id === episodeId ? { ...ep, watched: !ep.watched } : ep
+        ep.id === episodeId ? { ...ep, watched: nextWatched } : ep
       )
     );
+
+    try {
+      await updateEpisode(episodeId, { watched: nextWatched });
+    } catch (err) {
+      console.error('Failed to update episode watch status:', err);
+      setEpisodeList(
+        episodeList.map((ep) =>
+          ep.id === episodeId ? { ...ep, watched: target.watched } : ep
+        )
+      );
+    }
   };
 
-  const handleDeleteSeries = () => {
+  const handleDeleteSeries = async () => {
+    console.log(`[ShowDetail] handleDeleteSeries CALLED for seriesId: ${seriesId}`);
     if (
       window.confirm(
         `Are you sure you want to delete "${show.title}" and all its episodes?`
       )
     ) {
-      if (setSeriesList) setSeriesList(seriesList.filter((s) => s.id !== seriesId));
-      setEpisodeList(episodeList.filter((ep) => ep.seriesId !== seriesId));
-      onBack();
+      try {
+        const posterFileId = show.poster_file_id || show.posterFileId;
+        const backdropFileId = show.backdrop_file_id || show.backdropFileId;
+
+        // Clean up ImageKit files while show ownership can be verified in database
+        if (posterFileId) {
+          try {
+            await deleteImageFromImageKit(posterFileId, seriesId);
+          } catch (err) {
+            console.error("Failed to delete show poster from ImageKit:", err);
+          }
+        }
+
+        if (backdropFileId) {
+          try {
+            await deleteImageFromImageKit(backdropFileId, seriesId);
+          } catch (err) {
+            console.error("Failed to delete show backdrop from ImageKit:", err);
+          }
+        }
+
+        await deleteShow(seriesId);
+
+        if (setSeriesList) setSeriesList(seriesList.filter((s) => s.id !== seriesId));
+        setEpisodeList(episodeList.filter((ep) => ep.seriesId !== seriesId));
+        onBack();
+      } catch (err) {
+        console.error("Failed to delete show from Neon:", err);
+      }
     }
   };
 
-  const handleDeleteEpisode = (id: number) => {
+  const handleDeleteEpisode = async (id: string) => {
     if (window.confirm('Delete this episode?')) {
+      const previousList = episodeList;
       setEpisodeList(episodeList.filter((ep) => ep.id !== id));
+      try {
+        await deleteEpisode(id);
+      } catch (err) {
+        console.error('Failed to delete episode:', err);
+        setEpisodeList(previousList);
+        alert(err instanceof Error ? err.message : 'Failed to delete episode.');
+      }
     }
   };
 
   const openAddEpisode = () => {
     setEditingEp(null);
+    setEpisodeError(null);
     setShowEpisodeForm(true);
   };
 
   const openEditEpisode = (ep: Episode) => {
     setEditingEp(ep);
+    setEpisodeError(null);
     setShowEpisodeForm(true);
   };
 
   const closeEpisodeForm = () => {
+    if (isSavingEpisode) return;
     setEditingEp(null);
+    setEpisodeError(null);
     setShowEpisodeForm(false);
   };
 
-  const handleSaveEpisode = (formData: Partial<Episode>) => {
+  const handleSaveEpisode = async (formData: Partial<Episode>) => {
     if (editingEp) {
-      setEpisodeList(
-        episodeList.map((ep) =>
-          ep.id === editingEp.id
-            ? {
-                ...ep,
-                title: formData.title!,
-                season: formData.season !== undefined ? formData.season : ep.season,
-                episodeNumber: formData.episodeNumber,
-                link: formData.link,
-                platform: detectPlatform(formData.link),
-                notes: formData.notes,
-                watched: formData.watched!,
-              }
-            : ep
-        )
-      );
+      setIsSavingEpisode(true);
+      setEpisodeError(null);
+      try {
+        const updatePayload: Partial<Omit<Episode, 'id' | 'seriesId'>> = {
+          title: formData.title!.trim(),
+          season: formData.season !== undefined ? formData.season : editingEp.season,
+          episodeNumber: formData.episodeNumber,
+          link: formData.link?.trim() || undefined,
+          platform: detectPlatform(formData.link),
+          notes: formData.notes?.trim() || undefined,
+          watched: formData.watched !== undefined ? formData.watched : editingEp.watched,
+        };
+
+        const updated = await updateEpisode(editingEp.id, updatePayload);
+        setEpisodeList(
+          episodeList.map((ep) => (ep.id === editingEp.id ? updated : ep))
+        );
+        closeEpisodeForm();
+      } catch (err) {
+        console.error('Failed to update episode:', err);
+        setEpisodeError(
+          err instanceof Error ? err.message : 'Failed to update episode.'
+        );
+      } finally {
+        setIsSavingEpisode(false);
+      }
     } else {
-      const newEp: Episode = {
-        id: new Date().getTime(),
-        seriesId: show.id,
-        season: formData.season || (typeof selectedSeason === 'number' ? selectedSeason : 1),
-        episodeNumber: formData.episodeNumber || myEpisodes.length + 1,
-        title: formData.title!,
-        link: formData.link,
-        platform: detectPlatform(formData.link),
-        notes: formData.notes,
-        watched: formData.watched!,
-      };
-      setEpisodeList([...episodeList, newEp]);
+      // Phase 3B: CREATE Episode in Neon PostgreSQL
+      setIsSavingEpisode(true);
+      setEpisodeError(null);
+      try {
+        const episodePayload: Omit<Episode, "id"> = {
+          seriesId: show.id,
+          season:
+            formData.season ||
+            (typeof selectedSeason === 'number' ? selectedSeason : 1),
+          episodeNumber: formData.episodeNumber || myEpisodes.length + 1,
+          title: formData.title!.trim(),
+          link: formData.link?.trim() || undefined,
+          platform: detectPlatform(formData.link),
+          notes: formData.notes?.trim() || undefined,
+          watched: formData.watched ?? false,
+        };
+
+        const created = await createEpisode(episodePayload);
+        setEpisodeList([...episodeList, created]);
+        closeEpisodeForm();
+      } catch (err) {
+        console.error('Failed to create episode:', err);
+        setEpisodeError(
+          err instanceof Error ? err.message : 'Failed to create episode.'
+        );
+      } finally {
+        setIsSavingEpisode(false);
+      }
     }
-    closeEpisodeForm();
   };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      
+
       {/* Top Bar Navigation & Actions */}
       <div className="flex items-center justify-between gap-3">
         <Button
@@ -272,6 +360,7 @@ export default function ShowDetail({
         <div className="absolute inset-0 z-0 overflow-hidden">
           {activeBackdrop ? (
             <img
+              key={activeBackdrop}
               src={activeBackdrop}
               alt={show.title}
               onError={handleImageError}
@@ -289,7 +378,7 @@ export default function ShowDetail({
 
         {/* Hero Foreground Content */}
         <div className="relative z-10 w-full p-5 sm:p-8 md:p-10 max-w-3xl flex flex-col items-start gap-3.5 sm:gap-4">
-          
+
           {/* Metadata & Status Indicator */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {getStatusBadge(show.status)}
@@ -298,19 +387,19 @@ export default function ShowDetail({
               <span>{show.type}</span>
               {(show.year || show.duration) && (
                 <>
-                  <span className="text-slate-500">·</span>
+                  <span className="text-slate-500">Â·</span>
                   <span>{show.year || show.duration}</span>
                 </>
               )}
               {show.year && show.duration && (
                 <>
-                  <span className="text-slate-500">·</span>
+                  <span className="text-slate-500">Â·</span>
                   <span>{show.duration}</span>
                 </>
               )}
               {show.genre && (
                 <>
-                  <span className="text-slate-500">·</span>
+                  <span className="text-slate-500">Â·</span>
                   <span className="text-slate-300 line-clamp-1">{show.genre}</span>
                 </>
               )}
@@ -420,17 +509,20 @@ export default function ShowDetail({
         </div>
 
         {/* Episode Dialog Modal */}
-        <EpisodeForm 
+        <EpisodeForm
           key={editingEp ? `edit-${editingEp.id}` : `add-${showEpisodeForm}`}
-          open={showEpisodeForm} 
+          open={showEpisodeForm}
           onOpenChange={(isOpen) => {
+            if (isSavingEpisode) return;
             if (!isOpen) closeEpisodeForm();
             else setShowEpisodeForm(true);
           }}
-          initialData={editingEp} 
-          onSave={handleSaveEpisode} 
+          initialData={editingEp}
+          onSave={handleSaveEpisode}
           onCancel={closeEpisodeForm}
           defaultEpisodeNumber={myEpisodes.length + 1}
+          isLoading={isSavingEpisode}
+          error={episodeError}
         />
 
         {/* Episode List */}
@@ -455,13 +547,13 @@ export default function ShowDetail({
             </div>
           ) : (
             displayedEpisodes.map((ep) => (
-              <EpisodeItem 
-                key={ep.id} 
-                ep={ep} 
-                seriesPoster={show.poster} 
-                onToggleWatched={toggleWatched} 
-                onEdit={openEditEpisode} 
-                onDelete={handleDeleteEpisode} 
+              <EpisodeItem
+                key={ep.id}
+                ep={ep}
+                seriesPoster={show.poster || show.poster_url}
+                onToggleWatched={toggleWatched}
+                onEdit={openEditEpisode}
+                onDelete={handleDeleteEpisode}
               />
             ))
           )}

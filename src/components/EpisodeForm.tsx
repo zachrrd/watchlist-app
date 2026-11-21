@@ -23,6 +23,8 @@ interface EpisodeFormProps {
   onSave: (data: Partial<Episode>) => void;
   onCancel: () => void;
   defaultEpisodeNumber?: number;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 export default function EpisodeForm({
@@ -32,6 +34,8 @@ export default function EpisodeForm({
   onSave,
   onCancel,
   defaultEpisodeNumber,
+  isLoading = false,
+  error,
 }: EpisodeFormProps) {
   const [epTitle, setEpTitle] = useState(initialData?.title || '');
   const [epSeason, setEpSeason] = useState(initialData?.season?.toString() || '1');
@@ -48,7 +52,7 @@ export default function EpisodeForm({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!epTitle.trim()) return;
+    if (!epTitle.trim() || isLoading) return;
 
     onSave({
       title: epTitle.trim(),
@@ -63,10 +67,10 @@ export default function EpisodeForm({
   const detected = epLink.trim() ? detectPlatform(epLink) : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(val) => { if (!isLoading) onOpenChange(val); }}>
       <DialogContent
         className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md max-h-[90dvh] flex flex-col bg-slate-900 border-slate-800 text-slate-50 p-0 overflow-hidden shadow-2xl rounded-2xl"
-        showCloseButton={true}
+        showCloseButton={!isLoading}
       >
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           <DialogHeader className="p-4 sm:p-5 border-b border-slate-800/80 shrink-0">
@@ -81,6 +85,13 @@ export default function EpisodeForm({
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+            {error && (
+              <div className="rounded-lg border border-red-500/20 bg-red-950/30 p-3 text-xs text-red-400">
+                <p className="font-medium">Failed to save episode</p>
+                <p className="mt-0.5 text-red-300/80">{error}</p>
+              </div>
+            )}
+
             {/* Season & Episode Number */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
@@ -200,6 +211,7 @@ export default function EpisodeForm({
               variant="ghost"
               size="sm"
               onClick={onCancel}
+              disabled={isLoading}
               className="text-slate-400 hover:text-white hover:bg-slate-800 text-xs h-9 px-3"
             >
               Cancel
@@ -207,9 +219,19 @@ export default function EpisodeForm({
             <Button
               type="submit"
               size="sm"
+              disabled={isLoading}
               className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 px-4 font-medium"
             >
-              {initialData ? 'Save Changes' : 'Add Episode'}
+              {isLoading ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 animate-spin rounded-full border border-white border-t-transparent" />
+                  <span>Saving...</span>
+                </span>
+              ) : initialData ? (
+                'Save Changes'
+              ) : (
+                'Add Episode'
+              )}
             </Button>
           </DialogFooter>
         </form>

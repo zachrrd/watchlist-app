@@ -22,9 +22,9 @@ interface WatchlistProps {
   seriesList: Series[];
   episodeList: Episode[];
   onAddClick: () => void;
-  onSeriesClick: (id: number) => void;
-  onEditShow?: (id: number) => void;
-  onDeleteShow?: (id: number) => void;
+  onSeriesClick: (id: string) => void;
+  onEditShow?: (id: string) => void;
+  onDeleteShow?: (id: string) => void;
   activeCategory?: NavCategory;
   onSelectCategory?: (category: NavCategory) => void;
   searchQuery?: string;
@@ -37,7 +37,7 @@ function selectFeaturedMedia(
 ): Series | null {
   if (!candidates || candidates.length === 0) return null;
 
-  const calculateProgress = (seriesId: number): number | undefined => {
+  const calculateProgress = (seriesId: string): number | undefined => {
     const episodes = episodeList.filter((ep) => ep.seriesId === seriesId);
     if (episodes.length === 0) return undefined;
     const watched = episodes.filter((ep) => ep.watched).length;
@@ -101,14 +101,14 @@ export default function Watchlist({
     }
   };
 
-  const calculateProgress = (seriesId: number): number | undefined => {
+  const calculateProgress = (seriesId: string): number | undefined => {
     const episodes = episodeList.filter((ep) => ep.seriesId === seriesId);
     if (episodes.length === 0) return undefined;
     const watched = episodes.filter((ep) => ep.watched).length;
     return Math.min(100, Math.max(0, Math.round((watched / episodes.length) * 100)));
   };
 
-  const getEpisodeCount = (seriesId: number) =>
+  const getEpisodeCount = (seriesId: string) =>
     episodeList.filter((ep) => ep.seriesId === seriesId).length;
 
   // Dynamically extract unique genres from the series collection

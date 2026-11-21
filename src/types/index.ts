@@ -1,9 +1,15 @@
 export interface Series {
-  id: number;
+  id: string;
   title: string;
   type: string;
   poster?: string;
+  poster_url?: string;
   backdrop?: string;
+  backdrop_url?: string;
+  poster_file_id?: string;
+  backdrop_file_id?: string;
+  posterFileId?: string;
+  backdropFileId?: string;
   genre?: string;
   year?: number | string;
   duration?: number | string;
@@ -12,8 +18,8 @@ export interface Series {
 }
 
 export interface Episode {
-  id: number;
-  seriesId: number;
+  id: string;
+  seriesId: string;
   season?: number;
   episodeNumber?: number;
   title: string;
@@ -35,3 +41,5 @@ export type StatusFilterOption =
   | 'Watching'
   | 'Plan to Watch'
   | 'Completed';
+
+export * from './database';

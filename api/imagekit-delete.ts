@@ -227,7 +227,11 @@ async function handleDeleteRequest(request: Request) {
 
   let body: { showId?: unknown; fileId?: unknown; fileIds?: unknown };
   try {
-    body = await request.json();
+    const rawBody: unknown = await request.json();
+    body =
+      rawBody && typeof rawBody === "object"
+        ? (rawBody as { showId?: unknown; fileId?: unknown; fileIds?: unknown })
+        : {};
   } catch {
     return Response.json(
       {

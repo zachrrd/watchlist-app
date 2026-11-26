@@ -120,11 +120,42 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
-  body {
-    @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-[#09090b] text-zinc-100;
+  }
+  ::selection {
+    background-color: rgb(99 102 241 / 0.35);
+    color: #ffffff;
+  }
+}
+
+/* Subtle obsidian scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.12);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.22);
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

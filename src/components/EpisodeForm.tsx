@@ -14,6 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { detectPlatform } from "@/lib/utils";
 
 interface EpisodeFormProps {
@@ -69,44 +70,52 @@ export default function EpisodeForm({
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!isLoading) onOpenChange(val); }}>
       <DialogContent
-        className="w-[calc(100%-2rem)] sm:w-full sm:max-w-md max-h-[90dvh] flex flex-col bg-slate-900 border-slate-800 text-slate-50 p-0 overflow-hidden shadow-2xl rounded-2xl"
+        className="flex max-h-[90dvh] w-[calc(100%-2rem)] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[#101116] p-0 text-zinc-100 shadow-2xl sm:w-full sm:max-w-md"
         showCloseButton={!isLoading}
       >
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <DialogHeader className="p-4 sm:p-5 border-b border-slate-800/80 shrink-0">
-            <DialogTitle className="text-base sm:text-lg font-bold text-slate-100">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <DialogHeader className="shrink-0 border-b border-white/[0.07] bg-[#101116] px-5 py-4 pr-12 sm:px-6">
+            <DialogTitle className="text-base font-semibold tracking-tight text-white sm:text-lg">
               {initialData ? 'Edit Episode' : 'Add New Episode'}
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
+            <DialogDescription className="text-xs text-zinc-400">
               {initialData
                 ? 'Update episode information and streaming details.'
                 : 'Track a new episode with streaming link and watch status.'}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
             {error && (
-              <div className="rounded-lg border border-red-500/20 bg-red-950/30 p-3 text-xs text-red-400">
-                <p className="font-medium">Failed to save episode</p>
-                <p className="mt-0.5 text-red-300/80">{error}</p>
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 rounded-lg border border-red-500/25 bg-red-950/35 px-3.5 py-3 text-xs text-red-200"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                <div>
+                  <p className="font-medium">Failed to save episode</p>
+                  <p className="mt-0.5 text-red-200/80">{error}</p>
+                </div>
               </div>
             )}
 
             {/* Season & Episode Number */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">Season</label>
+                <label className="block text-xs font-medium text-zinc-300">
+                  Season
+                </label>
                 <Input
                   type="number"
                   min="1"
                   value={epSeason}
                   onChange={(e) => setEpSeason(e.target.value)}
                   placeholder="1"
-                  className="bg-slate-950 border-slate-800 text-white text-sm h-9"
+                  className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-300">
+                <label className="block text-xs font-medium text-zinc-300">
                   Episode Number <span className="text-red-400">*</span>
                 </label>
                 <Input
@@ -116,14 +125,14 @@ export default function EpisodeForm({
                   onChange={(e) => setEpNumber(e.target.value)}
                   required
                   placeholder="1"
-                  className="bg-slate-950 border-slate-800 text-white text-sm h-9"
+                  className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                 />
               </div>
             </div>
 
             {/* Episode Title */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">
+              <label className="block text-xs font-medium text-zinc-300">
                 Episode Title <span className="text-red-400">*</span>
               </label>
               <Input
@@ -131,18 +140,18 @@ export default function EpisodeForm({
                 onChange={(e) => setEpTitle(e.target.value)}
                 required
                 placeholder="e.g. Chapter One: The Vanishing"
-                className="bg-slate-950 border-slate-800 text-white text-sm h-9"
+                className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
               />
             </div>
 
             {/* Watch Link */}
             <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-medium text-slate-300">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-medium text-zinc-300">
                   Watch Link (URL)
                 </label>
                 {detected && (
-                  <span className="text-[11px] text-indigo-400 font-medium">
+                  <span className="text-[11px] font-medium text-indigo-400">
                     Platform: {detected}
                   </span>
                 )}
@@ -151,27 +160,29 @@ export default function EpisodeForm({
                 value={epLink}
                 onChange={(e) => setEpLink(e.target.value)}
                 placeholder="https://netflix.com/watch/..."
-                className="bg-slate-950 border-slate-800 text-white text-sm h-9"
+                className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
               />
             </div>
 
             {/* Watched Status */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-slate-300">Watch Status</Label>
+            <div className="space-y-2">
+              <Label className="block text-xs font-medium text-zinc-300">
+                Watch Status
+              </Label>
               <RadioGroup
                 value={epWatched ? 'watched' : 'not-watched'}
                 onValueChange={(val) => setEpWatched(val === 'watched')}
-                className="flex gap-6 pt-1"
+                className="flex gap-6 pt-0.5"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem
                     value="not-watched"
                     id="ep-not-watched"
-                    className="border-slate-700 text-indigo-500"
+                    className="border-white/25 text-indigo-500"
                   />
                   <Label
                     htmlFor="ep-not-watched"
-                    className="text-xs text-slate-300 cursor-pointer font-normal"
+                    className="cursor-pointer text-xs font-normal text-zinc-300"
                   >
                     Not Watched
                   </Label>
@@ -180,11 +191,11 @@ export default function EpisodeForm({
                   <RadioGroupItem
                     value="watched"
                     id="ep-watched"
-                    className="border-slate-700 text-indigo-500"
+                    className="border-white/25 text-indigo-500"
                   />
                   <Label
                     htmlFor="ep-watched"
-                    className="text-xs text-slate-300 cursor-pointer font-normal"
+                    className="cursor-pointer text-xs font-normal text-zinc-300"
                   >
                     Watched
                   </Label>
@@ -194,25 +205,27 @@ export default function EpisodeForm({
 
             {/* Notes (Optional) */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300">Notes (Optional)</label>
+              <label className="block text-xs font-medium text-zinc-300">
+                Notes (Optional)
+              </label>
               <Textarea
                 value={epNotes}
                 onChange={(e) => setEpNotes(e.target.value)}
                 placeholder="Key moments, timestamps, thoughts..."
                 rows={2}
-                className="bg-slate-950 border-slate-800 text-white text-xs resize-none"
+                className="resize-none rounded-lg border-white/[0.09] bg-[#09090b] text-xs text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
               />
             </div>
           </div>
 
-          <DialogFooter className="p-4 sm:p-5 border-t border-slate-800/80 shrink-0 flex items-center justify-end gap-2 bg-slate-900/90">
+          <DialogFooter className="flex shrink-0 items-center justify-end gap-2 border-t border-white/[0.07] bg-[#101116] px-5 py-3.5 sm:px-6">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={onCancel}
               disabled={isLoading}
-              className="text-slate-400 hover:text-white hover:bg-slate-800 text-xs h-9 px-3"
+              className="h-9 rounded-lg px-3 text-xs text-zinc-400 hover:bg-white/[0.06] hover:text-white cursor-pointer"
             >
               Cancel
             </Button>
@@ -220,11 +233,11 @@ export default function EpisodeForm({
               type="submit"
               size="sm"
               disabled={isLoading}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs h-9 px-4 font-medium"
+              className="h-9 rounded-lg bg-indigo-500 px-4 text-xs font-semibold text-white shadow-[0_6px_18px_-6px_rgba(99,102,241,0.5)] hover:bg-indigo-400 cursor-pointer"
             >
               {isLoading ? (
                 <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3 animate-spin rounded-full border border-white border-t-transparent" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Saving...</span>
                 </span>
               ) : initialData ? (

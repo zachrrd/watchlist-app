@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Image as ImageIcon, Loader2 } from "lucide-react";
+import { AlertCircle, Image as ImageIcon, Loader2, Upload, X } from "lucide-react";
 
 interface EditShowProps {
   seriesId: string;
@@ -20,7 +20,7 @@ export default function EditShow({ seriesId, seriesList, setSeriesList, onCancel
   const currentShow = seriesList.find(s => s.id === seriesId);
   const initialPosterFileId = currentShow?.poster_file_id || currentShow?.posterFileId || '';
   const initialBackdropFileId = currentShow?.backdrop_file_id || currentShow?.backdropFileId || '';
-  
+
   const [title, setTitle] = useState(currentShow?.title || '');
   const [type, setType] = useState(currentShow?.type || 'TV Series');
   const [genre, setGenre] = useState(currentShow?.genre || '');
@@ -202,55 +202,73 @@ export default function EditShow({ seriesId, seriesList, setSeriesList, onCancel
   };
 
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => { if (!isOpen) onCancel(); }}>
-      <DialogContent className="w-[calc(100%-2rem)] sm:w-full sm:max-w-180 md:max-w-[720px] max-h-[90dvh] flex flex-col bg-slate-900 border-slate-800 text-slate-50 p-0 overflow-hidden shadow-2xl rounded-2xl">
-        <form onSubmit={handleUpdate} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          
-          {/* Dialog Header — Fixed at Top */}
-          <DialogHeader className="shrink-0 px-5 pt-6 pb-4 sm:px-8 sm:pt-7 sm:pb-4 border-b border-slate-800/60 bg-slate-900/90 pr-12">
-            <DialogTitle className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+    <Dialog open={true} onOpenChange={(isOpen) => { if (!isOpen && !isSubmitting) onCancel(); }}>
+      <DialogContent
+        className="flex max-h-[90dvh] w-[calc(100%-2rem)] flex-col overflow-hidden rounded-2xl border border-white/[0.09] bg-[#101116] p-0 text-zinc-100 shadow-2xl sm:w-full sm:max-w-[740px]"
+        showCloseButton={!isSubmitting}
+      >
+        <form onSubmit={handleUpdate} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {/* Dialog Header */}
+          <DialogHeader className="shrink-0 border-b border-white/[0.07] bg-[#101116] px-5 pt-5 pb-4 pr-12 sm:px-7 sm:pt-6">
+            <DialogTitle className="text-lg font-semibold tracking-tight text-white sm:text-xl">
               Edit Show / Movie
             </DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm text-slate-400 mt-1">
-              Update the details of your watchlist item.
+            <DialogDescription className="mt-1 text-xs text-zinc-400 sm:text-sm">
+              Update artwork, status, or metadata for this watchlist item.
             </DialogDescription>
           </DialogHeader>
 
-          {/* Dialog Body — Vertically Scrollable with Touch Inertia */}
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8">
-            {/* Images Column: Poster & Backdrop */}
-            <div className="space-y-4 w-full md:w-52 shrink-0 flex flex-col items-center md:items-start">
+          {/* Dialog Body — 2 Columns on Desktop */}
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain p-5 sm:p-6 md:flex-row md:gap-7 md:p-7">
+            {/* Artwork Dropzone Column */}
+            <div className="flex w-full shrink-0 flex-col items-center gap-4 md:w-52 md:items-start">
               {/* Poster Section (2:3) */}
-              <div className="space-y-1.5 w-full flex flex-col items-center md:items-start">
-                <div className="flex items-center justify-between w-36 sm:w-44 md:w-full">
-                  <label className="text-xs font-medium text-slate-300">Poster (2:3)</label>
+              <div className="flex w-full flex-col items-center space-y-1.5 md:items-start">
+                <div className="flex w-40 items-center justify-between sm:w-44 md:w-full">
+                  <label className="text-xs font-medium text-zinc-300">
+                    Poster (2:3)
+                  </label>
                   {poster && (
                     <button
                       type="button"
                       onClick={handleRemovePoster}
-                      className="text-[10px] text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-red-400 transition-colors hover:text-red-300 cursor-pointer"
                     >
-                      Remove
+                      <X className="h-3 w-3" />
+                      <span>Remove</span>
                     </button>
                   )}
                 </div>
-                <div className="w-36 sm:w-44 md:w-full aspect-2/3 bg-slate-950 rounded-lg border border-slate-700 overflow-hidden flex flex-col items-center justify-center relative group shadow-inner">
+                <div className="group relative flex aspect-2/3 w-40 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/[0.14] bg-[#09090b] transition-colors hover:border-indigo-500/50 sm:w-44 md:w-full">
                   {poster ? (
                     <>
-                      <img src={poster} alt="Poster preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-10">
-                        <span className="text-white text-xs font-medium">Change Poster</span>
+                      <img
+                        src={poster}
+                        alt="Poster preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/65 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Upload className="h-4 w-4 text-white" />
+                        <span className="text-xs font-medium text-white">
+                          Change Poster
+                        </span>
                       </div>
                     </>
                   ) : (
-                    <div className="text-slate-500 flex flex-col items-center gap-1.5 p-3 text-center">
-                      <ImageIcon className="w-6 h-6 opacity-60" />
-                      <span className="text-[11px] leading-tight">Upload Poster<br />JPG, PNG</span>
+                    <div className="flex flex-col items-center gap-2 p-4 text-center text-zinc-400">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-[#14161d] text-zinc-300">
+                        <ImageIcon className="h-4 w-4" />
+                      </div>
+                      <span className="text-[11px] leading-snug text-zinc-400">
+                        Upload Poster
+                        <br />
+                        <span className="text-zinc-500">JPG, PNG, WebP</span>
+                      </span>
                     </div>
                   )}
                   {isUploadingPoster && (
-                    <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center gap-1.5 text-xs text-sky-400 z-20">
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1.5 bg-[#09090b]/85 text-xs text-indigo-300 backdrop-blur-xs">
+                      <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
                       <span>Uploading...</span>
                     </div>
                   )}
@@ -259,43 +277,55 @@ export default function EditShow({ seriesId, seriesList, setSeriesList, onCancel
                     accept="image/*"
                     disabled={isUploadingPoster}
                     onChange={handlePosterUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                     aria-label="Upload poster image"
                   />
                 </div>
               </div>
 
               {/* Backdrop Section (16:9) */}
-              <div className="space-y-1.5 w-full flex flex-col items-center md:items-start">
-                <div className="flex items-center justify-between w-36 sm:w-44 md:w-full">
-                  <label className="text-xs font-medium text-slate-300">Backdrop (16:9)</label>
+              <div className="flex w-full flex-col items-center space-y-1.5 md:items-start">
+                <div className="flex w-40 items-center justify-between sm:w-44 md:w-full">
+                  <label className="text-xs font-medium text-zinc-300">
+                    Backdrop (16:9)
+                  </label>
                   {backdrop && (
                     <button
                       type="button"
                       onClick={handleRemoveBackdrop}
-                      className="text-[10px] text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-red-400 transition-colors hover:text-red-300 cursor-pointer"
                     >
-                      Remove
+                      <X className="h-3 w-3" />
+                      <span>Remove</span>
                     </button>
                   )}
                 </div>
-                <div className="w-36 sm:w-44 md:w-full aspect-16/9 bg-slate-950 rounded-lg border border-slate-700 overflow-hidden flex flex-col items-center justify-center relative group shadow-inner">
+                <div className="group relative flex aspect-16/9 w-40 flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-white/[0.14] bg-[#09090b] transition-colors hover:border-indigo-500/50 sm:w-44 md:w-full">
                   {backdrop ? (
                     <>
-                      <img src={backdrop} alt="Backdrop preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-10">
-                        <span className="text-white text-xs font-medium">Change Backdrop</span>
+                      <img
+                        src={backdrop}
+                        alt="Backdrop preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-black/65 opacity-0 transition-opacity group-hover:opacity-100">
+                        <Upload className="h-3.5 w-3.5 text-white" />
+                        <span className="text-[11px] font-medium text-white">
+                          Change Backdrop
+                        </span>
                       </div>
                     </>
                   ) : (
-                    <div className="text-slate-500 flex flex-col items-center gap-1 p-2 text-center">
-                      <ImageIcon className="w-5 h-5 opacity-60" />
-                      <span className="text-[10px] leading-tight">Upload Backdrop<br />JPG, PNG</span>
+                    <div className="flex flex-col items-center gap-1.5 p-2.5 text-center text-zinc-400">
+                      <ImageIcon className="h-4 w-4 text-zinc-400" />
+                      <span className="text-[10px] leading-tight text-zinc-400">
+                        Upload Backdrop
+                      </span>
                     </div>
                   )}
                   {isUploadingBackdrop && (
-                    <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center gap-1.5 text-xs text-sky-400 z-20">
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-1.5 bg-[#09090b]/85 text-xs text-indigo-300 backdrop-blur-xs">
+                      <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
                       <span>Uploading...</span>
                     </div>
                   )}
@@ -304,57 +334,67 @@ export default function EditShow({ seriesId, seriesList, setSeriesList, onCancel
                     accept="image/*"
                     disabled={isUploadingBackdrop}
                     onChange={handleBackdropUpload}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
                     aria-label="Upload backdrop image"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Form Fields */}
-            <div className="space-y-4 flex-1 w-full min-w-0">
+            {/* Metadata Form Fields */}
+            <div className="w-full min-w-0 flex-1 space-y-4">
               {error && (
-                <div className="rounded-lg border border-red-500/20 bg-red-950/30 p-3 text-xs text-red-400">
-                  <p className="font-medium">Failed to update show</p>
-                  <p className="mt-0.5 text-red-300/80">{error}</p>
+                <div
+                  role="alert"
+                  className="flex items-start gap-2.5 rounded-lg border border-red-500/25 bg-red-950/35 px-3.5 py-3 text-xs text-red-200"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+                  <div>
+                    <p className="font-medium">Failed to update show</p>
+                    <p className="mt-0.5 text-red-200/80">{error}</p>
+                  </div>
                 </div>
               )}
+
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-300">
-                  Title <span className="text-red-500">*</span>
+                <label className="block text-xs font-medium text-zinc-300">
+                  Title <span className="text-red-400">*</span>
                 </label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
                   placeholder="e.g. Breaking Bad"
-                  className="bg-slate-950 border-slate-700 text-white"
+                  className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                 />
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-300">
-                    Type <span className="text-red-500">*</span>
+                  <label className="block text-xs font-medium text-zinc-300">
+                    Type <span className="text-red-400">*</span>
                   </label>
                   <Select value={type} onValueChange={(val) => setType(val || 'TV Series')}>
-                    <SelectTrigger className="bg-slate-950 border-slate-700 text-white w-full">
+                    <SelectTrigger className="h-10 w-full rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                    <SelectContent className="border-white/10 bg-[#14151b] text-zinc-100">
                       <SelectItem value="TV Series">TV Series</SelectItem>
                       <SelectItem value="Movie">Movie</SelectItem>
                       <SelectItem value="Anime">Anime</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-300">Status</label>
+                  <label className="block text-xs font-medium text-zinc-300">
+                    Status
+                  </label>
                   <Select value={status} onValueChange={(val) => setStatus(val || 'Watching')}>
-                    <SelectTrigger className="bg-slate-950 border-slate-700 text-white w-full">
+                    <SelectTrigger className="h-10 w-full rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                    <SelectContent className="border-white/10 bg-[#14151b] text-zinc-100">
                       <SelectItem value="Watching">Watching</SelectItem>
                       <SelectItem value="Completed">Completed</SelectItem>
                       <SelectItem value="Plan to Watch">Plan to Watch</SelectItem>
@@ -363,74 +403,83 @@ export default function EditShow({ seriesId, seriesList, setSeriesList, onCancel
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-slate-300">Genre</label>
+                  <label className="block text-xs font-medium text-zinc-300">
+                    Genre
+                  </label>
                   <Input
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
                     placeholder="Action, Drama, Sci-Fi..."
-                    className="bg-slate-950 border-slate-700 text-white"
+                    className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                   />
                 </div>
                 {type === 'Movie' ? (
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300">Duration</label>
-                    <Input 
-                      value={duration} 
-                      onChange={(e) => setDuration(e.target.value)} 
-                      placeholder="e.g. 2h 28m" 
-                      className="bg-slate-950 border-slate-700 text-white" 
+                    <label className="block text-xs font-medium text-zinc-300">
+                      Duration
+                    </label>
+                    <Input
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      placeholder="e.g. 2h 28m"
+                      className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                     />
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300">Release Year</label>
-                    <Input 
-                      type="number" 
-                      value={year} 
-                      onChange={(e) => setYear(e.target.value)} 
-                      placeholder="e.g. 2024" 
-                      className="bg-slate-950 border-slate-700 text-white" 
+                    <label className="block text-xs font-medium text-zinc-300">
+                      Release Year
+                    </label>
+                    <Input
+                      type="number"
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      placeholder="e.g. 2024"
+                      className="h-10 rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                     />
                   </div>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-300">Description</label>
+                <label className="block text-xs font-medium text-zinc-300">
+                  Description
+                </label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
-                  placeholder="Short description..."
-                  className="bg-slate-950 border-slate-700 text-white resize-none"
+                  placeholder="Short synopsis or notes..."
+                  className="resize-none rounded-lg border-white/[0.09] bg-[#09090b] text-sm text-zinc-100 placeholder:text-zinc-400/65 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20"
                 />
               </div>
             </div>
           </div>
 
-          {/* Dialog Footer — Fixed at Bottom */}
-          <DialogFooter className="m-0 shrink-0 px-5 py-3.5 sm:px-8 sm:py-4 border-t border-slate-800 bg-slate-900/95 flex flex-row justify-end items-center gap-3 rounded-b-2xl">
+          {/* Dialog Footer */}
+          <DialogFooter className="m-0 flex shrink-0 flex-row items-center justify-end gap-2.5 rounded-b-2xl border-t border-white/[0.07] bg-[#101116] px-5 py-3.5 sm:px-7">
             <Button
               type="button"
               variant="ghost"
               onClick={onCancel}
-              className="text-slate-400 hover:text-white hover:bg-slate-800 text-sm"
+              disabled={isSubmitting}
+              className="h-9 rounded-lg px-4 text-xs font-medium text-zinc-400 hover:bg-white/[0.06] hover:text-white cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || isUploadingPoster || isUploadingBackdrop}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 sm:px-8 text-sm font-medium shadow-sm transition-all"
+              className="h-9 rounded-lg bg-indigo-500 px-6 text-xs font-semibold text-white shadow-[0_6px_18px_-6px_rgba(99,102,241,0.5)] transition-all hover:bg-indigo-400 cursor-pointer"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Saving Changes...</span>
                 </span>
-              ) : (isUploadingPoster || isUploadingBackdrop) ? (
+              ) : isUploadingPoster || isUploadingBackdrop ? (
                 <span className="flex items-center gap-2">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Uploading Image...</span>
@@ -440,7 +489,6 @@ export default function EditShow({ seriesId, seriesList, setSeriesList, onCancel
               )}
             </Button>
           </DialogFooter>
-
         </form>
       </DialogContent>
     </Dialog>

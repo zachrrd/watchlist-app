@@ -34,63 +34,64 @@ export default function EpisodeItem({
 
   return (
     <div
-      className={`group flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:py-3.5 sm:px-4 rounded-xl transition-all duration-150 gap-3 border-b border-slate-800/50 ${
+      className={`group flex flex-col justify-between gap-3 px-3.5 py-3 transition-colors sm:flex-row sm:items-center sm:px-4 sm:py-3.5 ${
         ep.watched
-          ? 'bg-slate-950/20 text-slate-400 hover:bg-slate-900/40'
-          : 'bg-slate-900/40 hover:bg-slate-900/80 text-slate-200'
+          ? 'bg-white/[0.01] text-zinc-400 hover:bg-white/[0.03]'
+          : 'text-zinc-100 hover:bg-white/[0.03]'
       }`}
     >
-      {/* Left: Number, Thumbnail, Watched Checkbox, Title & Metadata */}
-      <div className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1">
-        
+      {/* Left: Watched Toggle, Number, Thumbnail, Title & Notes */}
+      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-3.5">
+        {/* Watched Toggle */}
+        <button
+          type="button"
+          onClick={() => onToggleWatched(ep.id)}
+          className="-ml-1 shrink-0 rounded-full p-1 text-zinc-400 transition-colors hover:text-white cursor-pointer"
+          title={ep.watched ? "Mark as unwatched" : "Mark as watched"}
+          aria-label={ep.watched ? "Mark as unwatched" : "Mark as watched"}
+        >
+          {ep.watched ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+          ) : (
+            <Circle className="h-5 w-5 text-zinc-600 transition-colors group-hover:text-zinc-400" />
+          )}
+        </button>
+
         {/* Episode Number */}
-        <span className="font-mono text-xs sm:text-sm font-semibold text-slate-500 w-5 sm:w-6 text-center shrink-0">
-          {ep.episodeNumber !== undefined ? String(ep.episodeNumber).padStart(2, '0') : '--'}
+        <span className="w-6 shrink-0 text-center font-mono text-xs font-semibold tabular-nums text-zinc-500 sm:text-sm">
+          {ep.episodeNumber !== undefined
+            ? String(ep.episodeNumber).padStart(2, '0')
+            : '--'}
         </span>
 
-        {/* Thumbnail (Series Poster fallback) */}
-        <div className="w-12 h-16 sm:w-14 sm:h-20 shrink-0 rounded-md overflow-hidden bg-slate-950 border border-slate-800 relative flex items-center justify-center">
+        {/* Compact Thumbnail */}
+        <div className="relative flex h-14 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[#14161d] ring-1 ring-white/[0.08]">
           {seriesPoster && !thumbError ? (
             <img
               src={seriesPoster}
               alt={ep.title}
               onError={() => setThumbError(true)}
-              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
-                ep.watched ? 'opacity-60 grayscale-[30%]' : ''
+              className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${
+                ep.watched ? 'opacity-50 grayscale-[30%]' : ''
               }`}
               loading="lazy"
             />
           ) : (
-            <Film className="w-5 h-5 text-slate-700" />
+            <Film className="h-4 w-4 text-zinc-600" />
           )}
         </div>
 
-        {/* Watched Toggle Checkbox */}
-        <button
-          type="button"
-          onClick={() => onToggleWatched(ep.id)}
-          className="p-1 -ml-1 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
-          title={ep.watched ? "Mark as unwatched" : "Mark as watched"}
-          aria-label={ep.watched ? "Mark as unwatched" : "Mark as watched"}
-        >
-          {ep.watched ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 drop-shadow-xs" />
-          ) : (
-            <Circle className="w-5 h-5 text-slate-600 hover:text-slate-400" />
-          )}
-        </button>
-
-        {/* Title, Season badge & optional Notes */}
-        <div className="flex flex-col min-w-0 flex-1 pr-1">
-          <div className="flex items-center gap-2 flex-wrap">
+        {/* Title, Season Badge & Optional Notes */}
+        <div className="flex min-w-0 flex-1 flex-col pr-1">
+          <div className="flex flex-wrap items-center gap-2">
             {ep.season && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 border border-slate-700/50 shrink-0">
+              <span className="shrink-0 rounded border border-white/[0.08] bg-white/[0.05] px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-zinc-400 leading-none">
                 S{ep.season}
               </span>
             )}
             <span
-              className={`text-xs sm:text-sm font-medium leading-snug break-words ${
-                ep.watched ? 'text-slate-400 line-through' : 'text-slate-100'
+              className={`text-xs font-medium leading-snug break-words sm:text-sm ${
+                ep.watched ? 'text-zinc-400 line-through' : 'text-zinc-100'
               }`}
             >
               {ep.title}
@@ -98,56 +99,53 @@ export default function EpisodeItem({
           </div>
 
           {ep.notes && (
-            <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 italic">
+            <p className="mt-1 line-clamp-1 text-[11px] text-zinc-400">
               {ep.notes}
             </p>
           )}
         </div>
       </div>
 
-      {/* Right: Watch Link & Actions */}
-      <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/60 shrink-0">
-        
-        {/* External Watch Link */}
+      {/* Right: Watch Link & Row Actions */}
+      <div className="flex shrink-0 items-center justify-between gap-2.5 border-t border-white/[0.06] pt-2 sm:justify-end sm:border-t-0 sm:pt-0">
         {hasValidLink ? (
           <a
             href={ep.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-950/40 hover:bg-indigo-950/70 border border-indigo-900/50 px-2.5 py-1.5 rounded-lg transition-colors group/link"
+            className="group/link inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/25 bg-indigo-500/10 px-2.5 py-1.5 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/20 hover:text-indigo-200"
             title={`Watch on ${platformName}`}
           >
-            <PlayCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span className="font-medium truncate max-w-[100px] sm:max-w-none">
+            <PlayCircle className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
+            <span className="max-w-[110px] truncate sm:max-w-none">
               {platformName}
             </span>
-            <ExternalLink className="w-3 h-3 text-indigo-400/70 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
+            <ExternalLink className="h-3 w-3 shrink-0 text-indigo-400/70 transition-transform group-hover/link:translate-x-0.5" />
           </a>
         ) : (
           <div className="hidden sm:block sm:w-2" />
         )}
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-1 border-l border-slate-800 pl-2">
+        <div className="flex items-center gap-1 border-l border-white/[0.07] pl-2">
           <Button
             size="icon"
             variant="ghost"
-            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+            className="h-8 w-8 rounded-lg text-zinc-400 hover:bg-white/[0.06] hover:text-white cursor-pointer"
             onClick={() => onEdit(ep)}
             title="Edit Episode"
             aria-label="Edit Episode"
           >
-            <Edit className="w-3.5 h-3.5" />
+            <Edit className="h-3.5 w-3.5" />
           </Button>
           <Button
             size="icon"
             variant="ghost"
-            className="h-8 w-8 text-red-400/80 hover:text-red-300 hover:bg-red-950/40"
+            className="h-8 w-8 rounded-lg text-zinc-400 hover:bg-red-500/10 hover:text-red-400 cursor-pointer"
             onClick={() => onDelete(ep.id)}
             title="Delete Episode"
             aria-label="Delete Episode"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

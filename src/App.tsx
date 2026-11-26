@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { neon } from "./lib/neon";
 import type { Series, Episode } from "./types";
 import Navbar, { type NavCategory } from "./components/Navbar";
@@ -7,6 +7,7 @@ import AddShow from "./components/AddShow";
 import ShowDetail from "./components/ShowDetail";
 import EditShow from "./components/EditShow";
 import AuthForm from "./components/AuthForm";
+import ConfirmDialog from "./components/ConfirmDialog";
 import { getShows, getAllEpisodes, deleteShow } from "./services";
 
 interface AuthenticatedAppProps {
@@ -27,6 +28,9 @@ function AuthenticatedApp({ userId }: AuthenticatedAppProps) {
   const [selectedSeriesId, setSelectedSeriesId] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<NavCategory>("home");
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<Series | null>(null);
+  const [isDeletingShow, setIsDeletingShow] = useState(false);
+  const [deleteShowError, setDeleteShowError] = useState<string | null>(null);
 
   // --- FETCH DATA FROM NEON ---
   useEffect(() => {
@@ -145,22 +149,31 @@ function AuthenticatedApp({ userId }: AuthenticatedAppProps) {
     window.location.hash = `edit-${id}`;
   };
 
-  const handleDeleteShow = async (id: string) => {
-    const show = seriesList.find((s) => s.id === id);
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${show?.title || "this title"}" and all its episodes?`,
-      )
-    ) {
-      try {
-        // Safe delete via RPC (AFTER DELETE trigger automatically records orphaned files into outbox)
-        await deleteShow(id);
+  const handleDeleteShow = (id: string) => {
+    const show = seriesList.find((s) => s.id === id) || null;
+    if (!show) return;
+    setDeleteShowError(null);
+    setDeleteTarget(show);
+  };
 
-        setSeriesList(seriesList.filter((s) => s.id !== id));
-        setEpisodeList(episodeList.filter((ep) => ep.seriesId !== id));
-      } catch (err) {
-        console.error("Failed to delete show from Neon:", err);
-      }
+  const confirmDeleteShow = async () => {
+    if (!deleteTarget) return;
+    setIsDeletingShow(true);
+    setDeleteShowError(null);
+    try {
+      // Safe delete via RPC (AFTER DELETE trigger automatically records orphaned files into outbox)
+      await deleteShow(deleteTarget.id);
+
+      setSeriesList(seriesList.filter((s) => s.id !== deleteTarget.id));
+      setEpisodeList(episodeList.filter((ep) => ep.seriesId !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Failed to delete show from Neon:", err);
+      setDeleteShowError(
+        err instanceof Error ? err.message : "Failed to delete this title. Please try again.",
+      );
+    } finally {
+      setIsDeletingShow(false);
     }
   };
 
@@ -176,10 +189,10 @@ function AuthenticatedApp({ userId }: AuthenticatedAppProps) {
 
   if (isLoadingData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-zinc-100">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-800 border-t-indigo-500" />
-          <span className="text-xs text-slate-400">Loading your watchlist...</span>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-indigo-500" />
+          <span className="text-xs text-zinc-400">Loading your watchlist...</span>
         </div>
       </div>
     );
@@ -191,7 +204,7 @@ function AuthenticatedApp({ userId }: AuthenticatedAppProps) {
 
   // --- RENDER COMPONENT ---
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+    <div className="flex min-h-screen flex-col bg-[#09090b] text-zinc-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
       {/* Sticky Global Navbar */}
       <Navbar
         activeCategory={activeCategory}
@@ -206,9 +219,9 @@ function AuthenticatedApp({ userId }: AuthenticatedAppProps) {
       {/* Main Content Area */}
       <main className="flex-auto px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         {dataError && (
-          <div className="mb-6 rounded-lg border border-red-500/20 bg-red-950/30 p-4 text-sm text-red-400">
+          <div className="mb-6 rounded-xl border border-red-500/25 bg-red-950/35 p-4 text-sm text-red-200">
             <p className="font-medium">Error loading data from database</p>
-            <p className="mt-1 text-xs text-red-300/80">{dataError}</p>
+            <p className="mt-1 text-xs text-red-200/80">{dataError}</p>
           </div>
         )}
 
@@ -258,6 +271,22 @@ function AuthenticatedApp({ userId }: AuthenticatedAppProps) {
           />
         )}
       </main>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+            setDeleteShowError(null);
+          }
+        }}
+        title={`Delete "${deleteTarget?.title || "this title"}"?`}
+        description="This will permanently remove the title and all of its tracked episodes from your watchlist. This action cannot be undone."
+        confirmLabel="Delete Title"
+        isLoading={isDeletingShow}
+        error={deleteShowError}
+        onConfirm={confirmDeleteShow}
+      />
     </div>
   );
 }
@@ -267,10 +296,10 @@ export default function App() {
 
   if (isPending) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-zinc-100">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-800 border-t-indigo-500" />
-          <span className="text-xs text-slate-400">Loading Watchlist...</span>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-indigo-500" />
+          <span className="text-xs text-zinc-400">Loading Watchlist...</span>
         </div>
       </div>
     );

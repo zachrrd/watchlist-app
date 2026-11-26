@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Series, Episode } from '../types';
 import { Button } from '@/components/ui/button';
-import { Info, Play } from 'lucide-react';
+import { ArrowRight, Play } from 'lucide-react';
 
 export interface HeroSectionProps {
   series: Series | null;
@@ -25,7 +25,10 @@ export default function HeroSection({
   const watchedCount = seriesEpisodes.filter((ep) => ep.watched).length;
   const progress =
     seriesEpisodes.length > 0
-      ? Math.min(100, Math.max(0, Math.round((watchedCount / seriesEpisodes.length) * 100)))
+      ? Math.min(
+          100,
+          Math.max(0, Math.round((watchedCount / seriesEpisodes.length) * 100))
+        )
       : undefined;
 
   // Secondary "Watch Now" action only when a valid watch link exists in episodes
@@ -53,21 +56,21 @@ export default function HeroSection({
     switch (status) {
       case 'Watching':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-300 border border-emerald-700/60 shadow-sm backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/70 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300 backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Watching
           </span>
         );
       case 'Plan to Watch':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-950/80 px-2.5 py-0.5 text-xs font-semibold text-amber-300 border border-amber-700/60 shadow-sm backdrop-blur-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-950/70 px-2.5 py-0.5 text-[11px] font-medium text-amber-300 backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
             Plan to Watch
           </span>
         );
       case 'Completed':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-950/80 px-2.5 py-0.5 text-xs font-semibold text-indigo-300 border border-indigo-700/60 shadow-sm backdrop-blur-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-950/70 px-2.5 py-0.5 text-[11px] font-medium text-indigo-300 backdrop-blur-md">
             <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
             Completed
           </span>
@@ -77,91 +80,100 @@ export default function HeroSection({
     }
   };
 
+  const isResumable =
+    series.status === 'Watching' || (typeof progress === 'number' && progress > 0 && progress < 100);
+
   return (
     <section
       aria-label={`Featured: ${series.title}`}
-      className={`relative w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800/80 bg-slate-950 shadow-2xl min-h-[400px] sm:min-h-[460px] md:min-h-[500px] lg:min-h-[540px] flex items-end ${className}`}
+      className={`relative flex min-h-[380px] w-full items-end overflow-hidden rounded-2xl bg-[#09090b] sm:min-h-[450px] md:min-h-[500px] lg:min-h-[540px] ${className}`}
     >
       {/* Background Media Container */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         {imageSource && isBackdropValid ? (
           <img
             key={imageSource}
             src={imageSource}
             alt={series.title}
             onError={() => setFailedUrl(imageSource)}
-            className="h-full w-full object-cover object-center scale-105 transition-transform duration-1000 ease-out"
+            className="h-full w-full object-cover object-center scale-[1.02]"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950" />
+          <div className="h-full w-full bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.18),transparent_60%),linear-gradient(135deg,#12131a_0%,#09090b_100%)]" />
         )}
 
-        {/* Directional Vignettes / Scrims for High Contrast & Legibility */}
-        {/* 1. Left-to-right gradient for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent w-full md:w-4/5" />
-
-        {/* 2. Bottom-to-top gradient to blend with content rails */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
-
-        {/* 3. Subtle top vignette to blend under sticky navbar */}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950/70 to-transparent" />
+        {/* Seamless Gradient Masks melting into #09090b background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-[#09090b]/80 to-transparent md:w-4/5" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/55 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#09090b]/75 to-transparent" />
+        <div className="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-[#09090b]/70 to-transparent" />
       </div>
 
       {/* Hero Foreground Content */}
-      <div className="relative z-10 w-full p-6 sm:p-8 md:p-12 lg:p-14 max-w-2xl lg:max-w-3xl flex flex-col items-start gap-3.5 sm:gap-4">
-        
+      <div className="relative z-10 flex w-full max-w-2xl flex-col items-start gap-3.5 p-5 sm:p-8 md:p-11 lg:max-w-3xl lg:p-14">
         {/* Typographic Metadata & Status Indicator */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2.5 text-xs">
           {getStatusBadge(series.status)}
 
-          <div className="flex items-center gap-1.5 text-slate-300 font-medium drop-shadow-xs">
+          <div className="flex flex-wrap items-center gap-1.5 font-medium text-zinc-300 tabular-nums">
             <span>{series.type}</span>
             {(series.year || (series.duration && series.type === 'Movie')) && (
               <>
-                <span className="text-slate-500">·</span>
-                <span>{series.type === 'Movie' ? series.duration || series.year : series.year}</span>
+                <span className="text-zinc-500">·</span>
+                <span>
+                  {series.type === 'Movie'
+                    ? series.duration || series.year
+                    : series.year}
+                </span>
               </>
             )}
             {series.genre && (
               <>
-                <span className="text-slate-500">·</span>
-                <span className="text-slate-300 line-clamp-1">{series.genre}</span>
+                <span className="text-zinc-500">·</span>
+                <span className="text-zinc-300 line-clamp-1">{series.genre}</span>
               </>
             )}
           </div>
-
-          {typeof progress === 'number' && progress > 0 && (
-            <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-[11px] font-medium text-indigo-300 border border-indigo-500/30">
-              {progress}% Watched
-            </span>
-          )}
         </div>
 
         {/* Featured Media Title */}
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-lg line-clamp-2">
+        <h1 className="text-3xl font-bold tracking-[-0.03em] text-white leading-[1.06] sm:text-4xl md:text-5xl line-clamp-2">
           {series.title}
         </h1>
 
         {/* Short Synopsis / Description */}
         {series.description && (
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-3 max-w-xl drop-shadow-xs">
+          <p className="max-w-xl text-xs leading-relaxed text-zinc-300/90 sm:text-sm md:text-base line-clamp-2 sm:line-clamp-3">
             {series.description}
           </p>
         )}
 
+        {/* Episode Progress Bar (when tracking episodes) */}
+        {typeof progress === 'number' && seriesEpisodes.length > 0 && (
+          <div className="flex w-full max-w-xs items-center gap-3 pt-0.5">
+            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/15">
+              <div
+                className="h-full rounded-full bg-indigo-500 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="text-[11px] font-medium tabular-nums text-zinc-300 shrink-0">
+              {watchedCount}/{seriesEpisodes.length} ep · {progress}%
+            </span>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          {/* Primary View Details Button */}
+        <div className="flex flex-wrap items-center gap-3 pt-1.5">
           <Button
             type="button"
             onClick={() => onViewDetail(series.id)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 sm:px-6 py-2.5 rounded-lg shadow-lg shadow-indigo-600/25 transition-all active:scale-95 text-sm gap-2"
+            className="h-10 rounded-lg bg-white px-5 text-sm font-semibold text-zinc-950 shadow-[0_10px_28px_-6px_rgba(0,0,0,0.65)] transition-all hover:bg-zinc-200 active:scale-[0.98] gap-2 cursor-pointer"
           >
-            <Info className="h-4 w-4" />
-            <span>View Details</span>
+            <span>{isResumable ? 'Continue Watching' : 'View Details'}</span>
+            <ArrowRight className="h-4 w-4" />
           </Button>
 
-          {/* Secondary Watch Now Button (only if valid watch link exists) */}
           {watchLink && (
             <a
               href={watchLink}
@@ -172,9 +184,9 @@ export default function HeroSection({
               <Button
                 type="button"
                 variant="outline"
-                className="border-slate-700/80 bg-slate-900/80 hover:bg-slate-800 text-white hover:text-white backdrop-blur-md font-medium px-5 sm:px-6 py-2.5 rounded-lg shadow-sm transition-all active:scale-95 text-sm gap-2"
+                className="h-10 rounded-lg border-white/15 bg-white/[0.08] px-5 text-sm font-medium text-white backdrop-blur-md transition-all hover:bg-white/[0.14] hover:text-white active:scale-[0.98] gap-2 cursor-pointer"
               >
-                <Play className="h-4 w-4 text-indigo-400 fill-indigo-400" />
+                <Play className="h-3.5 w-3.5 fill-white text-white" />
                 <span>
                   Watch Now{watchPlatform ? ` on ${watchPlatform}` : ''}
                 </span>
@@ -182,9 +194,7 @@ export default function HeroSection({
             </a>
           )}
         </div>
-
       </div>
     </section>
   );
 }
-

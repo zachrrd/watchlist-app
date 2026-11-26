@@ -6,7 +6,6 @@ import MediaCard from "./MediaCard";
 import ContentRail from "./ContentRail";
 import LibraryControls from "./LibraryControls";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Plus,
   Search,
@@ -190,7 +189,6 @@ export default function Watchlist({
         return yearA - yearB;
       });
     }
-    // 'default': retains original array insertion order
     return result;
   }, [genreFiltered, sortBy]);
 
@@ -239,7 +237,7 @@ export default function Watchlist({
     return (
       <div
         key={show.id}
-        className="w-[140px] xs:w-[155px] sm:w-[175px] md:w-[195px] lg:w-[215px] shrink-0 snap-start"
+        className="w-[144px] sm:w-[172px] md:w-[192px] lg:w-[210px] shrink-0 snap-start"
       >
         <MediaCard
           show={show}
@@ -288,12 +286,10 @@ export default function Watchlist({
     return prog !== undefined && prog === 100;
   });
 
-  // Rails Partitioning for Category Pages (when not filtered)
   const planToWatchList = categoryFiltered.filter((s) => s.status === 'Plan to Watch');
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      
+    <div className="mx-auto max-w-7xl space-y-6 pb-16">
       {/* 1. Cinematic Hero Section — Home only, when not searching and featured show exists */}
       {activeCategory === 'home' && !isSearchActive && featuredShow && (
         <HeroSection
@@ -305,22 +301,22 @@ export default function Watchlist({
 
       {/* 2. Category Header & Navigation Bar (Category Views Only) */}
       {activeCategory !== 'home' && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/60 pb-4">
+        <div className="flex flex-col justify-between gap-4 border-b border-white/[0.07] pb-4 sm:flex-row sm:items-center">
           <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl font-bold tracking-[-0.025em] text-white sm:text-3xl">
               {categoryMeta[activeCategory]?.title || 'Library'}
             </h1>
-            <span className="text-sm font-medium text-slate-400">
+            <span className="text-sm font-medium tabular-nums text-zinc-400">
               {isFiltered
-                ? `(${sortedList.length} of ${categoryFiltered.length})`
-                : `(${categoryFiltered.length})`}
+                ? `${sortedList.length} of ${categoryFiltered.length}`
+                : categoryFiltered.length}
             </span>
           </div>
 
           {/* Mobile-only Category Switcher & Add New Button */}
           <div className="flex items-center gap-2 self-start sm:self-auto">
             {onSelectCategory && (
-              <div className="flex md:hidden items-center gap-1 p-1 bg-slate-900/90 rounded-lg border border-slate-800">
+              <div className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-[#101116] p-1 md:hidden">
                 {filterTabs.map((tab) => {
                   const isSelected = activeCategory === tab.id;
                   return (
@@ -328,10 +324,10 @@ export default function Watchlist({
                       key={tab.id}
                       type="button"
                       onClick={() => onSelectCategory(tab.id)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                      className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                          ? 'bg-indigo-500 text-white'
+                          : 'text-zinc-400 hover:bg-white/[0.05] hover:text-zinc-100'
                       }`}
                     >
                       <tab.icon className="h-3 w-3" />
@@ -345,7 +341,7 @@ export default function Watchlist({
             <Button
               variant="outline"
               onClick={onAddClick}
-              className="border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:text-white shrink-0 gap-1.5 text-xs sm:text-sm font-medium transition-all"
+              className="h-9 shrink-0 gap-1.5 rounded-lg border-white/[0.1] bg-[#111216] text-xs font-medium text-zinc-200 transition-all hover:bg-white/[0.07] hover:text-white sm:text-sm cursor-pointer"
             >
               <Plus className="h-4 w-4" />
               <span>Add Title</span>
@@ -356,7 +352,7 @@ export default function Watchlist({
 
       {/* 3. Library Controls (Search, Status, Genre, Sort, View Mode) — Category Views */}
       {activeCategory !== 'home' && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <LibraryControls
             searchQuery={search}
             onSearchChange={handleSearchChange}
@@ -375,16 +371,16 @@ export default function Watchlist({
 
           {/* Active Filter Chips */}
           {isFiltered && (
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs text-slate-400">
-              <span className="text-slate-500 font-medium mr-1">Active filters:</span>
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs text-zinc-400">
+              <span className="mr-1 font-medium text-zinc-500">Filters:</span>
 
               {isSearchActive && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700/60">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#14151b] px-2.5 py-0.5 text-zinc-200">
                   <span>Search: &ldquo;{search.trim()}&rdquo;</span>
                   <button
                     type="button"
                     onClick={() => handleSearchChange('')}
-                    className="text-slate-400 hover:text-white cursor-pointer"
+                    className="text-zinc-400 hover:text-white cursor-pointer"
                     aria-label="Remove search filter"
                   >
                     <X className="h-3 w-3" />
@@ -393,12 +389,12 @@ export default function Watchlist({
               )}
 
               {statusFilter !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-950/70 text-indigo-200 border border-indigo-800/60">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-2.5 py-0.5 text-indigo-200">
                   <span>Status: {statusFilter}</span>
                   <button
                     type="button"
                     onClick={() => setStatusFilter('all')}
-                    className="text-indigo-400 hover:text-white cursor-pointer"
+                    className="text-indigo-300 hover:text-white cursor-pointer"
                     aria-label="Remove status filter"
                   >
                     <X className="h-3 w-3" />
@@ -407,12 +403,12 @@ export default function Watchlist({
               )}
 
               {genreFilter !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700/60">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#14151b] px-2.5 py-0.5 text-zinc-200">
                   <span>Genre: {genreFilter}</span>
                   <button
                     type="button"
                     onClick={() => setGenreFilter('all')}
-                    className="text-slate-400 hover:text-white cursor-pointer"
+                    className="text-zinc-400 hover:text-white cursor-pointer"
                     aria-label="Remove genre filter"
                   >
                     <X className="h-3 w-3" />
@@ -421,22 +417,21 @@ export default function Watchlist({
               )}
 
               {sortBy !== 'default' && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700/60">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-[#14151b] px-2.5 py-0.5 text-zinc-200">
                   <span>
-                    Sort: {
-                      sortBy === 'title-asc'
-                        ? 'A → Z'
-                        : sortBy === 'title-desc'
-                        ? 'Z → A'
-                        : sortBy === 'year-desc'
-                        ? 'Newest'
-                        : 'Oldest'
-                    }
+                    Sort:{" "}
+                    {sortBy === 'title-asc'
+                      ? 'A → Z'
+                      : sortBy === 'title-desc'
+                      ? 'Z → A'
+                      : sortBy === 'year-desc'
+                      ? 'Newest'
+                      : 'Oldest'}
                   </span>
                   <button
                     type="button"
                     onClick={() => setSortBy('default')}
-                    className="text-slate-400 hover:text-white cursor-pointer"
+                    className="text-zinc-400 hover:text-white cursor-pointer"
                     aria-label="Remove sort filter"
                   >
                     <X className="h-3 w-3" />
@@ -449,7 +444,7 @@ export default function Watchlist({
                 variant="ghost"
                 size="sm"
                 onClick={handleClearAll}
-                className="h-6 px-2 text-[11px] text-slate-400 hover:text-white hover:bg-slate-800/60 ml-auto sm:ml-1"
+                className="ml-auto h-6 px-2 text-[11px] text-zinc-400 hover:bg-white/[0.06] hover:text-white sm:ml-1 cursor-pointer"
               >
                 Clear All
               </Button>
@@ -464,9 +459,9 @@ export default function Watchlist({
       {activeCategory === 'home' && isSearchActive ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white sm:text-xl">
               <span>Search Results</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700/60">
+              <span className="rounded-full border border-white/[0.08] bg-white/[0.05] px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-400">
                 {sortedList.length}
               </span>
             </h2>
@@ -474,43 +469,106 @@ export default function Watchlist({
               variant="ghost"
               size="sm"
               onClick={() => handleSearchChange('')}
-              className="text-xs text-slate-400 hover:text-white"
+              className="text-xs text-zinc-400 hover:bg-white/[0.06] hover:text-white cursor-pointer"
             >
               Clear search
             </Button>
           </div>
 
           {sortedList.length === 0 ? (
-            <Card className="bg-slate-900/40 border-slate-800/80">
-              <CardContent className="py-16 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-800/80 text-slate-400 mb-3">
-                  <Search className="h-6 w-6 text-slate-500" />
-                </div>
-                <h3 className="text-base font-semibold text-slate-200">
-                  No titles match your filters.
-                </h3>
-                <p className="mt-1 text-sm text-slate-400 max-w-sm mx-auto">
-                  Try another search or clear the filters.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSearchChange('')}
-                  className="mt-4 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
-                >
-                  Clear filters
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-white/[0.07] bg-[#0e0f13] px-6 py-16 text-center">
+              <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.08] bg-[#14161d] text-zinc-400">
+                <Search className="h-5 w-5" />
+              </div>
+              <h3 className="text-base font-semibold text-zinc-100">
+                No titles match &ldquo;{search.trim()}&rdquo;
+              </h3>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-400">
+                Try another title or genre, or clear your search to return to your library.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSearchChange('')}
+                className="mt-5 rounded-lg border-white/[0.1] bg-[#14161d] text-zinc-200 hover:bg-white/[0.08] hover:text-white cursor-pointer"
+              >
+                Clear search
+              </Button>
+            </div>
           ) : (
-            <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
+            <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
               {sortedList.map((show) => renderGridCard(show))}
             </div>
           )}
         </div>
+      ) : activeCategory === 'home' && seriesList.length === 0 ? (
+        /* CASE B0: FIRST-RUN ONBOARDING EMPTY STATE (HOME WITH NO TITLES) */
+        <section
+          aria-label="Get started with your watchlist"
+          className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0d0e12] px-6 py-14 sm:px-10 sm:py-20"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.12),transparent_60%)]"
+          />
+
+          <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center text-center">
+            <div className="mb-6 flex items-center gap-2.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#14161d] text-zinc-300 shadow-sm">
+                <Film className="h-5 w-5" />
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/15 text-indigo-400 shadow-sm">
+                <Tv className="h-5 w-5" />
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-[#14161d] text-zinc-300 shadow-sm">
+                <Clapperboard className="h-5 w-5" />
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-semibold tracking-[-0.025em] text-white sm:text-4xl">
+              Start your personal watchlist
+            </h1>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-400 sm:text-base">
+              Your archive is empty. Add your first movie, TV series, or anime
+              to unlock your featured hero, streaming rails, and episode progress tracking.
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <Button
+                type="button"
+                onClick={onAddClick}
+                className="h-10 gap-2 rounded-lg bg-indigo-500 px-5 text-sm font-semibold text-white shadow-[0_10px_24px_-6px_rgba(99,102,241,0.5)] transition-all hover:bg-indigo-400 active:scale-[0.98] cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Your First Title</span>
+              </Button>
+            </div>
+
+            <div className="mt-10 grid w-full grid-cols-1 gap-3 border-t border-white/[0.06] pt-8 text-left sm:grid-cols-3">
+              <div className="rounded-xl border border-white/[0.06] bg-[#111217] p-4">
+                <p className="text-xs font-semibold text-zinc-200">Movies</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                  Save posters, runtime, genres, and watch status.
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/[0.06] bg-[#111217] p-4">
+                <p className="text-xs font-semibold text-zinc-200">Episode Tracking</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                  Log watched episodes and resume right where you stopped.
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/[0.06] bg-[#111217] p-4">
+                <p className="text-xs font-semibold text-zinc-200">Curated Rails</p>
+                <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                  Browse by Continue Watching, Watchlist, and Completed.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       ) : activeCategory === 'home' ? (
         /* CASE B: HOME WITH STREAMING RAILS (DEFAULT DISCOVERY) */
-        <div className="space-y-8">
+        <div className="space-y-9 pt-1">
           {continueWatching.length > 0 && (
             <ContentRail
               title="Continue Watching"
@@ -534,7 +592,7 @@ export default function Watchlist({
           {tvSeriesList.length > 0 && (
             <ContentRail
               title="TV Series"
-              description="Binge-worthy shows & serials"
+              description="Shows and serials"
               count={tvSeriesList.length}
             >
               {tvSeriesList.map((show) => renderRailCard(show))}
@@ -544,7 +602,7 @@ export default function Watchlist({
           {animeList.length > 0 && (
             <ContentRail
               title="Anime Collection"
-              description="Top animated hits"
+              description="Animated series and films"
               count={animeList.length}
             >
               {animeList.map((show) => renderRailCard(show))}
@@ -563,60 +621,61 @@ export default function Watchlist({
         </div>
       ) : sortedList.length === 0 ? (
         /* CASE C: CATEGORY EMPTY STATE */
-        <Card className="bg-slate-900/40 border-slate-800/80">
-          <CardContent className="py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-800/80 text-slate-400 mb-3">
-              {isFiltered ? (
-                <Search className="h-6 w-6 text-slate-500" />
-              ) : (
-                <Film className="h-6 w-6 text-slate-500" />
-              )}
-            </div>
-            <h3 className="text-base font-semibold text-slate-200">
-              {isFiltered ? 'No titles match your filters.' : 'Your watchlist is empty.'}
-            </h3>
-            <p className="mt-1 text-sm text-slate-400 max-w-sm mx-auto">
-              {isFiltered
-                ? 'Try another search or clear the filters.'
-                : 'Add a movie or series to start building your library.'}
-            </p>
+        <div className="rounded-2xl border border-white/[0.07] bg-[#0e0f13] px-6 py-16 text-center">
+          <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.08] bg-[#14161d] text-zinc-400">
             {isFiltered ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearAll}
-                className="mt-4 border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
-              >
-                Clear filters
-              </Button>
+              <Search className="h-5 w-5" />
             ) : (
-              <Button
-                onClick={onAddClick}
-                className="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white text-sm"
-              >
-                <Plus className="mr-1.5 h-4 w-4" /> Add Title
-              </Button>
+              <Film className="h-5 w-5" />
             )}
-          </CardContent>
-        </Card>
+          </div>
+          <h3 className="text-base font-semibold text-zinc-100">
+            {isFiltered
+              ? 'No titles match your filters.'
+              : `No titles in ${categoryMeta[activeCategory]?.title || 'this view'} yet.`}
+          </h3>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-zinc-400">
+            {isFiltered
+              ? 'Try adjusting your search or clearing the active filters.'
+              : 'Add a movie, series, or anime to start building this collection.'}
+          </p>
+          {isFiltered ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearAll}
+              className="mt-5 rounded-lg border-white/[0.1] bg-[#14161d] text-zinc-200 hover:bg-white/[0.08] hover:text-white cursor-pointer"
+            >
+              Clear filters
+            </Button>
+          ) : (
+            <Button
+              onClick={onAddClick}
+              className="mt-5 h-9 gap-1.5 rounded-lg bg-indigo-500 px-4 text-sm font-medium text-white hover:bg-indigo-400 cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Title</span>
+            </Button>
+          )}
+        </div>
       ) : viewMode === 'grid' ? (
         /* CASE D: CATEGORY POSTER GRID VIEW (PRIMARY LIBRARY BROWSING) */
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
               {isFiltered ? 'Filtered Results' : 'All Titles'}
             </h2>
-            <span className="text-xs text-slate-500">
-              Showing {sortedList.length} of {categoryFiltered.length} items
+            <span className="text-xs tabular-nums text-zinc-400">
+              Showing {sortedList.length} of {categoryFiltered.length}
             </span>
           </div>
-          <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
+          <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-5 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {sortedList.map((show) => renderGridCard(show))}
           </div>
         </div>
       ) : (
         /* CASE E: CATEGORY STREAMING RAILS VIEW */
-        <div className="space-y-8">
+        <div className="space-y-9">
           {isFiltered ? (
             <ContentRail
               title={`${categoryMeta[activeCategory]?.title} (Filtered)`}

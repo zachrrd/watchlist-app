@@ -63,21 +63,21 @@ export default function ContentRail({
   if (count === 0) return null;
 
   return (
-    <section className={`w-full overflow-hidden space-y-3 ${className}`}>
+    <section className={`w-full overflow-hidden space-y-2.5 ${className}`}>
       {/* Rail Header */}
-      <div className="flex items-center justify-between gap-4 px-1">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white truncate">
+      <div className="flex items-center justify-between gap-4 px-0.5">
+        <div className="flex items-baseline gap-2.5 min-w-0">
+          <h2 className="text-lg sm:text-xl font-semibold tracking-[-0.02em] text-zinc-100 truncate">
             {title}
           </h2>
           {typeof count === 'number' && (
-            <span className="shrink-0 rounded-full bg-slate-800/90 px-2 py-0.5 text-xs font-semibold text-slate-400 border border-slate-700/60">
+            <span className="shrink-0 rounded-full border border-white/[0.07] bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium tabular-nums text-zinc-400">
               {count}
             </span>
           )}
           {description && (
-            <span className="hidden md:inline text-xs text-slate-400 truncate">
-              — {description}
+            <span className="hidden md:inline text-xs text-zinc-400 truncate">
+              · {description}
             </span>
           )}
         </div>
@@ -90,10 +90,10 @@ export default function ContentRail({
             size="icon"
             disabled={!canScrollLeft}
             onClick={() => handleScroll('left')}
-            className={`h-8 w-8 rounded-full border border-slate-800 bg-slate-900/90 text-slate-300 transition-all ${
+            className={`h-8 w-8 rounded-full border border-white/[0.08] bg-[#111216] text-zinc-300 transition-all ${
               canScrollLeft
-                ? 'hover:bg-slate-800 hover:text-white cursor-pointer active:scale-95'
-                : 'opacity-30 cursor-not-allowed pointer-events-none'
+                ? 'hover:bg-white/[0.08] hover:text-white cursor-pointer active:scale-95'
+                : 'opacity-25 cursor-not-allowed pointer-events-none'
             }`}
             aria-label={`Scroll ${title} left`}
           >
@@ -106,10 +106,10 @@ export default function ContentRail({
             size="icon"
             disabled={!canScrollRight}
             onClick={() => handleScroll('right')}
-            className={`h-8 w-8 rounded-full border border-slate-800 bg-slate-900/90 text-slate-300 transition-all ${
+            className={`h-8 w-8 rounded-full border border-white/[0.08] bg-[#111216] text-zinc-300 transition-all ${
               canScrollRight
-                ? 'hover:bg-slate-800 hover:text-white cursor-pointer active:scale-95'
-                : 'opacity-30 cursor-not-allowed pointer-events-none'
+                ? 'hover:bg-white/[0.08] hover:text-white cursor-pointer active:scale-95'
+                : 'opacity-25 cursor-not-allowed pointer-events-none'
             }`}
             aria-label={`Scroll ${title} right`}
           >
@@ -121,7 +121,7 @@ export default function ContentRail({
       {/* Horizontal Scroll Track */}
       <div
         ref={scrollRef}
-        className="flex items-stretch gap-3 sm:gap-4 overflow-x-auto scrollbar-none py-2 px-1 -mx-1 scroll-smooth snap-x snap-mandatory"
+        className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto scrollbar-none py-2 px-1 -mx-1 scroll-smooth snap-x snap-mandatory"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
@@ -133,4 +133,3 @@ export default function ContentRail({
     </section>
   );
 }
-
